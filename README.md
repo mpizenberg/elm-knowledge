@@ -78,9 +78,22 @@ The package [elm-concurrent-task](https://github.com/andrewMacmurray/elm-concurr
 It enables running a tree of tasks concurrently, and calling JS as tasks.
 Setting it up requires installing both the elm package, and the JS package providing the task-port runtime.
 
-### URL handling with elm-app-url
+### Navigation and URL handling with ports and elm-app-url
 
-https://github.com/lydell/elm-app-url
+Use `Browser.element` with two ports instead of `Browser.application`:
+`navigationOut` (Elm -> JS) sends tagged JSON to request navigation actions,
+and `onNavigation` (JS -> Elm) echoes back `{href, state}` after navigation occurs.
+JS handles `history.pushState` / `replaceState` and `popstate` events.
+
+Three navigation patterns:
+
+1. **`pushUrl`** — Standard SPA page navigation. JS calls `pushState`, then notifies Elm of the new URL. Back button works via `popstate`.
+2. **`pushState` with state object** — Multi-step flows (e.g. wizard) where the URL stays the same but a state object (e.g. `{wizardStep: 2}`) tracks progress. Back button restores previous state atomically with the URL, avoiding flicker.
+3. **`replaceUrl`** — Cosmetic URL updates (e.g. `/about#3`) without creating a history entry and without notifying Elm. The model remains the source of truth.
+
+The [elm-app-url package](https://github.com/lydell/elm-app-url) is used to parse URLs and extract query parameters.
+
+See [examples/navigation](examples/navigation/) for a working demo.
 
 ### Languages i18n with travelm-agency
 
