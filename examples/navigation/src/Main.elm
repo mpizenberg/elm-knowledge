@@ -1,6 +1,6 @@
 port module Main exposing (main)
 
-import AppUrl exposing (AppUrl)
+import AppUrl
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -26,25 +26,22 @@ pushUrl url =
         )
 
 
-pushWizardStep : Int -> Cmd msg
-pushWizardStep step =
-    navigationOut
-        (Encode.object
-            [ ( "tag", Encode.string "pushState" )
-            , ( "state"
-              , Encode.object
-                    [ ( "wizardStep", Encode.int step ) ]
-              )
-            ]
-        )
-
-
 replaceUrl : String -> Cmd msg
 replaceUrl url =
     navigationOut
         (Encode.object
             [ ( "tag", Encode.string "replaceUrl" )
             , ( "url", Encode.string url )
+            ]
+        )
+
+
+pushState : Encode.Value -> Cmd msg
+pushState state =
+    navigationOut
+        (Encode.object
+            [ ( "tag", Encode.string "pushState" )
+            , ( "state", state )
             ]
         )
 
@@ -61,6 +58,15 @@ main =
         , subscriptions = subscriptions
         , view = view
         }
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    onNavigation NavigationChanged
 
 
 
@@ -138,7 +144,7 @@ parseUrl locationHref =
 
 type alias NavData =
     { href : String
-    , wizardStep : Maybe Int
+    , state : Maybe Int
     }
 
 
@@ -206,7 +212,7 @@ update msg model =
                             parseUrl nav.href
 
                         adjusted =
-                            case ( page, nav.wizardStep ) of
+                            case ( page, nav.state ) of
                                 ( Wizard _, Just step ) ->
                                     Wizard (intToWizardStep step)
 
@@ -219,7 +225,9 @@ update msg model =
                     ( model, Cmd.none )
 
         GoToWizardStep step ->
-            ( model, pushWizardStep (wizardStepToInt step) )
+            ( model
+            , pushState (Encode.object [ ( "wizardStep", Encode.int (wizardStepToInt step) ) ])
+            )
 
         IncrementCounter ->
             let
@@ -243,15 +251,6 @@ update msg model =
                     model.wizardData
             in
             ( { model | wizardData = { data | color = color } }, Cmd.none )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    onNavigation NavigationChanged
 
 
 
@@ -321,9 +320,7 @@ viewWizard step data =
                 [ h1 [] [ text "Wizard - Step 1" ]
                 , p [] [ text "What is your name?" ]
                 , input [ type_ "text", value data.name, onInput SetName, placeholder "Enter your name" ] []
-                , p []
-                    [ button [ onClick (GoToWizardStep Step2) ] [ text "Next \u{2192}" ]
-                    ]
+                , p [] [ button [ onClick (GoToWizardStep Step2) ] [ text "Next →" ] ]
                 ]
 
         Step2 ->
@@ -343,9 +340,9 @@ viewWizard step data =
                     , text " Blue"
                     ]
                 , p []
-                    [ button [ onClick (GoToWizardStep Step1) ] [ text "\u{2190} Back" ]
+                    [ button [ onClick (GoToWizardStep Step1) ] [ text "← Back" ]
                     , text " | "
-                    , button [ onClick (GoToWizardStep Step3) ] [ text "Next \u{2192}" ]
+                    , button [ onClick (GoToWizardStep Step3) ] [ text "Next →" ]
                     ]
                 ]
 
@@ -358,7 +355,7 @@ viewWizard step data =
                     , li [] [ text ("Color: " ++ data.color) ]
                     ]
                 , p []
-                    [ button [ onClick (GoToWizardStep Step2) ] [ text "\u{2190} Back" ]
+                    [ button [ onClick (GoToWizardStep Step2) ] [ text "← Back" ]
                     , text " | "
                     , button [ onClick (GoToWizardStep Step1) ] [ text "Start Over" ]
                     ]
@@ -374,5 +371,5 @@ viewAbout counter =
             [ text ("Counter: " ++ String.fromInt counter ++ " ")
             , button [ onClick IncrementCounter ] [ text "+1" ]
             ]
-        , p [] [ text "The URL updates via replaceState without triggering a page update. The model is the source of truth." ]
+        , p [] [ text "When clicking on the above button, the URL updates via replaceState without triggering a page update." ]
         ]
