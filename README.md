@@ -97,7 +97,19 @@ See [examples/navigation](examples/navigation/) for a working demo.
 
 ### Languages i18n with travelm-agency
 
-https://github.com/anmolitor/travelm-agency
+[travelm-agency](https://github.com/anmolitor/travelm-agency) is a compile-time i18n solution for Elm.
+Translation files (JSON, Properties, or Fluent) are processed into a strongly-typed Elm module
+with one function per translation key. Placeholder requirements are enforced at compile time.
+
+In **inline mode**, all translations are embedded in the generated Elm code (no HTTP needed).
+In **dynamic mode**, translations are loaded at runtime from optimized JSON files.
+
+Key patterns:
+- Detect language from `navigator.languages` by iterating and calling `languageFromString` on each tag
+- Switch language by reinitializing `I18n` (inline) or via `switchLanguage` (dynamic)
+- Keep `document.documentElement.lang` in sync via a port
+
+See [examples/i18n](examples/i18n/) for a working demo (inline mode).
 
 ### Big Integers with elm-integer
 

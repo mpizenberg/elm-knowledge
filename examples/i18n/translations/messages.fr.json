@@ -1,0 +1,6 @@
+{
+  "greeting": "Bonjour, {name} !",
+  "welcome": "Bienvenue dans l'exemple i18n.",
+  "language": "Langue",
+  "description": "Cette application montre l'internationalisation avec travelm-agency."
+}
