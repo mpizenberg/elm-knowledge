@@ -75,12 +75,27 @@ It isn’t published as a package yet, so to use it, one needs to embed it in th
 
 ### Task Ports with elm-concurrent-task
 
-Ports and commands can be limiting because they don’t have a composition mechanism.
+Ports and commands can be limiting because they don't have a composition mechanism.
 Each command must be dealt with in the `update` function with a dedicated message.
-So chaining and composing them is tedious.
 The package [elm-concurrent-task](https://github.com/andrewMacmurray/elm-concurrent-task) provides an effective alternative.
 It enables running a tree of tasks concurrently, and calling JS as tasks.
-Setting it up requires installing both the elm package, and the JS package providing the task-port runtime.
+Setting it up requires installing both the Elm package and the JS package (`@andrewmacmurray/elm-concurrent-task`).
+
+Define custom tasks with `ConcurrentTask.define { function, expect, errors, args }`.
+The `function` string maps to a JS function registered with `ConcurrentTask.register` on the JS side.
+JS functions return a value for success or `{ error: ... }` for expected errors.
+
+Composition:
+- **Concurrent**: `map2`, `map3`, `batch` run tasks in parallel
+- **Sequential**: `andThen` chains tasks where the second depends on the first's result
+
+Wiring requires two ports (`send`, `receive`), a `ConcurrentTask.Pool` stored in the model,
+and an `onProgress` subscription. Use `ConcurrentTask.attempt` to start a task — it returns an updated pool and a command.
+Handle `OnProgress (pool, cmd)` in update to forward intermediate results.
+
+Key gotcha: `map2`/`map3` run concurrently (unlike `elm/core` `Task.map2` which is sequential).
+
+See [examples/concurrent-task](examples/concurrent-task/) for a working demo.
 
 ### Navigation and URL handling with ports and elm-app-url
 
