@@ -9,6 +9,10 @@ It contains both generic information, and some of my preferences.
 - Always expose the minimum required api from modules
 - Avoid `Browser.Application` as a main, and prefer `Browser.Element` with routing handled via ports
 
+## Design Patterns
+
+- Extensible record phantom builder pattern (https://www.youtube.com/watch?v=Trp3tmpMb-o)
+
 ## Tooling
 
 ### Tooling Installation with elm-tooling-cli
