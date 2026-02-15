@@ -113,8 +113,20 @@ See [examples/i18n](examples/i18n/) for a working demo (inline mode).
 
 ### Big Integers with elm-integer
 
-https://github.com/dwayne/elm-integer
-https://github.com/dwayne/elm-natural
+Elm's `Int` overflows at 21! (exceeds `2^53 - 1`). For crypto, financial math, or computing large factorials,
+use [dwayne/elm-natural](https://github.com/dwayne/elm-natural) (non-negative) or [dwayne/elm-integer](https://github.com/dwayne/elm-integer) (signed).
+
+Key API:
+- Create: `Natural.fromString` (supports `0b`, `0o`, `0x` prefixes), `Natural.fromSafeInt` (for constants)
+- Arithmetic: `add`, `mul`, `sub` (saturating), `divModBy`, `exp`
+- Display: `toString`, `toHexString`, `toBinaryString`, `toOctalString`
+
+Gotchas:
+- `Natural.sub a b` returns `zero` when `b > a` (saturating subtraction)
+- `Natural.toInt` wraps: returns `n mod (maxSafeInt + 1)` for large values
+- Equality `==` works on `Natural` (unlike `AnyDict`)
+
+See [examples/big-integers](examples/big-integers/) for a working demo.
 
 ### Markdown Parsing with elm-markdown
 
@@ -122,11 +134,47 @@ https://github.com/dillonkearns/elm-markdown
 
 ### Remote Data state with remotedata
 
-https://github.com/krisajenkins/remotedata
+The common pattern `{ data : Maybe a, loading : Bool, error : Maybe String }` allows invalid states
+(e.g. `loading = True` with `error = Just "..."`). [krisajenkins/remotedata](https://github.com/krisajenkins/remotedata)
+replaces this with a single union type:
+
+```elm
+type RemoteData e a = NotAsked | Loading | Failure e | Success a
+```
+
+`WebData a` is an alias for `RemoteData Http.Error a`.
+
+Key pattern for HTTP integration:
+```elm
+Http.expectJson (RemoteData.fromResult >> GotPosts) decoder
+```
+
+This converts `Result Http.Error a` into `WebData a` in one line.
+Pattern match exhaustively on all 4 variants in the view to ensure every state is handled.
+
+See [examples/remote-data](examples/remote-data/) for a working demo.
 
 ### Dicts of custom keys with any-dict
 
-https://github.com/turboMaCk/any-dict
+Elm's `Dict` only accepts `comparable` keys (Int, String, etc.). To use a custom type as a key,
+[turboMaCk/any-dict](https://github.com/turboMaCk/any-dict) lets you provide a `k -> comparable` function:
+
+```elm
+type Fruit = Apple | Banana | Orange
+inventory : AnyDict String Fruit Int
+inventory = Dict.Any.empty fruitToString
+```
+
+Key patterns:
+- Create: `Dict.Any.empty toComparable`, `Dict.Any.fromList toComparable pairs`
+- Query/modify: `get`, `insert`, `update`, `remove` — same API as `Dict`
+
+Gotchas:
+- `toComparable` is provided once at creation; all operations use the stored function
+- `toComparable` must be injective (every distinct key must produce a different comparable)
+- Don't use `==` to compare `AnyDict` values (causes runtime exception). Use `Dict.Any.equal` instead
+
+See [examples/any-dict](examples/any-dict/) for a working demo.
 
 ### Cardano Interop with elm-cardano
 
