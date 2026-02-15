@@ -134,7 +134,21 @@ See [examples/big-integers](examples/big-integers/) for a working demo.
 
 ### Markdown Parsing with elm-markdown
 
-https://github.com/dillonkearns/elm-markdown
+[dillonkearns/elm-markdown](https://github.com/dillonkearns/elm-markdown) parses markdown in a two-step pipeline:
+`Markdown.Parser.parse` turns raw text into `Block` values, then `Markdown.Renderer.render` converts those blocks
+into any output type using a `Renderer` record.
+
+The `Renderer` record has one field per markdown element (heading, paragraph, codeBlock, link, etc.).
+Start from `defaultHtmlRenderer` and override the fields you want to customize — e.g. add `id` attributes
+to headings for anchor links.
+
+Custom HTML tags (e.g. `<callout type="info">`) are supported via `Markdown.Html.oneOf` + `Markdown.Html.tag`,
+using a decoder-style API where `withAttribute` / `withOptionalAttribute` extract tag attributes.
+
+Key gotcha: `defaultHtmlRenderer` rejects all HTML tags by default. If your markdown contains any HTML,
+you must provide a custom `html` handler listing every tag you want to support, or rendering will fail.
+
+See [examples/markdown](examples/markdown/) for a working demo.
 
 ### Remote Data state with remotedata
 
