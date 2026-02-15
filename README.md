@@ -81,6 +81,13 @@ The package [elm-concurrent-task](https://github.com/andrewMacmurray/elm-concurr
 It enables running a tree of tasks concurrently, and calling JS as tasks.
 Setting it up requires installing both the Elm package and the JS package (`@andrewmacmurray/elm-concurrent-task`).
 
+Built-in modules provide drop-in replacements for common `elm/core` and `elm/browser` tasks:
+- `ConcurrentTask.Http` — `get`, `post`, `request` (like `elm/http` but composable)
+- `ConcurrentTask.Browser.Dom` — `focus`, `blur`, `getElement`, `getViewport`, `setViewport`
+- `ConcurrentTask.Time` — `now`, `here`, `getZoneName`, plus `withDuration` for timing tasks
+- `ConcurrentTask.Process` — `sleep`, `withTimeout` (cancel a task after N ms)
+- `ConcurrentTask.Random` — `generate` from any `Random.Generator`
+
 Define custom tasks with `ConcurrentTask.define { function, expect, errors, args }`.
 The `function` string maps to a JS function registered with `ConcurrentTask.register` on the JS side.
 JS functions return a value for success or `{ error: ... }` for expected errors.
@@ -92,6 +99,10 @@ Composition:
 Wiring requires two ports (`send`, `receive`), a `ConcurrentTask.Pool` stored in the model,
 and an `onProgress` subscription. Use `ConcurrentTask.attempt` to start a task — it returns an updated pool and a command.
 Handle `OnProgress (pool, cmd)` in update to forward intermediate results.
+
+Good use cases: app initialization that loads multiple resources concurrently (localStorage + HTTP + DOM measurements),
+multi-step workflows that would otherwise bounce through `update` (read config → fetch API → write result),
+parallel HTTP requests with `batch`, and timed operations with `withDuration`.
 
 Key gotcha: `map2`/`map3` run concurrently (unlike `elm/core` `Task.map2` which is sequential).
 

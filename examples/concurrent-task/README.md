@@ -19,6 +19,23 @@ The app defines two custom JS tasks (`localstorage:getItem` and `localstorage:se
 - **Error protocol**: JS returns `{ error: "CODE" }` for expected errors, which Elm decodes via `expectErrors`. Plain return values are successes.
 - **Pool wiring**: Store `ConcurrentTask.Pool` in the model, use `attempt` to start tasks, `onProgress` as a subscription, and handle `OnProgress (pool, cmd)` in update
 
+## Built-in modules
+
+The package ships with drop-in replacements for common `elm/core` and `elm/browser` tasks, so they can be composed with custom tasks in a single pipeline:
+
+- `ConcurrentTask.Http` — `get`, `post`, `request` (like `elm/http` but composable with other tasks)
+- `ConcurrentTask.Browser.Dom` — `focus`, `blur`, `getElement`, `getViewport`, `setViewport`
+- `ConcurrentTask.Time` — `now`, `here`, `getZoneName`, plus `withDuration` to time any task
+- `ConcurrentTask.Process` — `sleep`, `withTimeout` (cancel a task after N ms with a fallback value)
+- `ConcurrentTask.Random` — `generate` from any `Random.Generator`
+
+## Good use cases
+
+- **App initialization**: load multiple resources concurrently on startup (localStorage, HTTP, DOM measurements) instead of bouncing through `update` for each one
+- **Multi-step workflows**: read config → fetch API → write result, expressed as a single `andThen` chain instead of separate Msg/Cmd round-trips
+- **Parallel HTTP**: fetch multiple endpoints with `batch` and collect all results at once
+- **Timed operations**: wrap any task with `ConcurrentTask.Time.withDuration` to measure how long it took
+
 ## JS runner setup
 
 The JS side registers task functions with `ConcurrentTask.register`:
