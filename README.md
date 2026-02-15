@@ -72,6 +72,7 @@ For humans, I highly recommend watching his talk ["Building a Toolkit for Design
 
 The v2 of elm-ui has been in the works for a while, and lives in [branch `2.0` of the repository](https://github.com/mdgriffith/elm-ui/tree/2.0).
 It isn't published as a package yet, so to use it, one needs to embed it in their project and adjust all the dependencies and source directories.
+The v2 branch also depends on an unpublished v2 of [elm-animator](https://github.com/mdgriffith/elm-animator/tree/v2), which must be embedded alongside it.
 
 v2 renames `Element` to `Ui`, merges `Background`/`Border` into `Ui`, and adds 7 new modules
 (`Ui.Prose`, `Ui.Anim`, `Ui.Gradient`, `Ui.Responsive`, `Ui.Layout`, `Ui.Shadow`, `Ui.Table`).
@@ -89,7 +90,7 @@ Biggest gotchas: `rgb` now takes 0–255 integers (not 0.0–1.0 floats),
 and `button`/`link` are attributes rather than elements.
 
 See [examples/elm-ui/elm-ui-v2.md](examples/elm-ui/elm-ui-v2.md) for a full v2 API reference,
-and [examples/elm-ui/](examples/elm-ui/) for a working demo (to be added).
+and [examples/elm-ui/](examples/elm-ui/) for a working demo.
 
 ### Task Ports with elm-concurrent-task
 

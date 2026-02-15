@@ -93,7 +93,8 @@ Key responsive attributes:
 
 ## Animation
 
-Built-in (replaces the separate `elm-animator` package). Requires wiring `Ui.Anim.init`/`Ui.Anim.update` through TEA.
+Built-in via `Ui.Anim`, but internally depends on an unpublished [elm-animator v2](https://github.com/mdgriffith/elm-animator/tree/v2) which must be embedded alongside elm-ui.
+Requires wiring `Ui.Anim.init`/`Ui.Anim.update` through TEA.
 
 ```elm
 -- Hover effect (CSS transition)

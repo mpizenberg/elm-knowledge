@@ -1,0 +1,8 @@
+[submodule "examples/elm-ui/elm-ui"]
+	path = examples/elm-ui/elm-ui
+	url = https://github.com/mdgriffith/elm-ui.git
+	branch = 2.0
+[submodule "examples/elm-ui/elm-animator"]
+	path = examples/elm-ui/elm-animator
+	url = https://github.com/mdgriffith/elm-animator.git
+	branch = v2
