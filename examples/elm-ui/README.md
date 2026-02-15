@@ -13,6 +13,8 @@ This example demonstrates [elm-ui v2](https://github.com/mdgriffith/elm-ui/tree/
 - **Button as attribute**: `Input.button msg` on an `el` (not a separate element)
 - **Link as attribute**: `Ui.link url` on an `el`
 - **Alignment**: `centerX`, `alignRight`, `contentCenterX`/`contentCenterY` (new in v2)
+- **Responsive design**: `Responsive.rowWhen` for pure CSS breakpoints (feature cards stack on mobile)
+- **Design module**: centralized color palette, typography, and component styles via `Attribute msg` values and `attrs` batching
 
 ## Setup
 
@@ -44,6 +46,7 @@ See [elm-ui-v2.md](elm-ui-v2.md) for a detailed v2 API reference covering module
 elm-ui/
   elm.json          -- Elm config (source-directories includes elm-ui/src)
   src/Main.elm      -- Profile card demo using elm-ui v2
+  src/Design.elm    -- Centralized design tokens (colors, typography, components)
   static/
     index.html      -- HTML shell
     elm.js          -- compiled Elm output (generated)
