@@ -9,8 +9,7 @@ module IndexedDb exposing
     , putAt, addAt
     , insert
     , delete, clear
-    , putMany, putManyAt, insertMany
-    , deleteMany
+    , putMany, putManyAt, insertMany, deleteMany
     , Error(..)
     )
 
