@@ -1,0 +1,10 @@
+{
+  "name": "elm-indexeddb",
+  "version": "1.0.0",
+  "description": "IndexedDB support for Elm via elm-concurrent-task",
+  "main": "src/index.js",
+  "type": "module",
+  "peerDependencies": {
+    "@andrewmacmurray/elm-concurrent-task": "^2.0.0"
+  }
+}
