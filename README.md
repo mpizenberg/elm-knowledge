@@ -127,6 +127,10 @@ Key gotcha: `map2`/`map3` run concurrently (unlike `elm/core` `Task.map2` which 
 
 See [examples/concurrent-task](examples/concurrent-task/) for a working demo.
 
+### IndexedDB with elm-indexeddb
+
+TODO
+
 ### Navigation and URL handling with ports and elm-app-url
 
 Use `Browser.element` with two ports instead of `Browser.application`:
