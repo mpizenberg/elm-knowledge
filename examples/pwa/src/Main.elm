@@ -3,34 +3,16 @@ port module Main exposing (main)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
+import Json.Encode as Encode
+import Pwa
 
 
-
--- PORTS (Elm -> JS)
-
-
-port acceptUpdate : () -> Cmd msg
+port pwaIn : (Decode.Value -> msg) -> Sub msg
 
 
-port requestInstall : () -> Cmd msg
-
-
-
--- PORTS (JS -> Elm)
-
-
-port onConnectionChange : (Bool -> msg) -> Sub msg
-
-
-port onNewVersionAvailable : (() -> msg) -> Sub msg
-
-
-port onInstallAvailable : (() -> msg) -> Sub msg
-
-
-port onInstalled : (() -> msg) -> Sub msg
+port pwaOut : Encode.Value -> Cmd msg
 
 
 
@@ -53,12 +35,7 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.batch
-        [ onConnectionChange ConnectionChanged
-        , onNewVersionAvailable (\() -> NewVersionAvailable)
-        , onInstallAvailable (\() -> InstallAvailable)
-        , onInstalled (\() -> AppInstalled)
-        ]
+    pwaIn (Pwa.decodeEvent >> GotPwaEvent)
 
 
 
@@ -93,12 +70,9 @@ init isOnline =
 
 
 type Msg
-    = ConnectionChanged Bool
-    | NewVersionAvailable
+    = GotPwaEvent (Result Decode.Error Pwa.Event)
     | AcceptUpdate
-    | InstallAvailable
     | RequestInstall
-    | AppInstalled
     | SetDraft String
     | AddNote
     | RemoveNote Int
@@ -107,23 +81,28 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ConnectionChanged online ->
-            ( { model | isOnline = online }, Cmd.none )
+        GotPwaEvent (Ok event) ->
+            case event of
+                Pwa.ConnectionChanged online ->
+                    ( { model | isOnline = online }, Cmd.none )
 
-        NewVersionAvailable ->
-            ( { model | updateAvailable = True }, Cmd.none )
+                Pwa.UpdateAvailable ->
+                    ( { model | updateAvailable = True }, Cmd.none )
+
+                Pwa.InstallAvailable ->
+                    ( { model | installAvailable = True }, Cmd.none )
+
+                Pwa.Installed ->
+                    ( { model | installAvailable = False, isInstalled = True }, Cmd.none )
+
+        GotPwaEvent (Err _) ->
+            ( model, Cmd.none )
 
         AcceptUpdate ->
-            ( model, acceptUpdate () )
-
-        InstallAvailable ->
-            ( { model | installAvailable = True }, Cmd.none )
+            ( model, Pwa.acceptUpdate pwaOut )
 
         RequestInstall ->
-            ( model, requestInstall () )
-
-        AppInstalled ->
-            ( { model | installAvailable = False, isInstalled = True }, Cmd.none )
+            ( model, Pwa.requestInstall pwaOut )
 
         SetDraft draft ->
             ( { model | draft = draft }, Cmd.none )
@@ -280,11 +259,6 @@ viewNote index note =
         [ span [] [ text note ]
         , button [ class "remove-btn", onClick (RemoveNote index) ] [ text "x" ]
         ]
-
-
-onInput : (String -> msg) -> Attribute msg
-onInput tagger =
-    Html.Events.on "input" (Decode.map tagger Html.Events.targetValue)
 
 
 onEnter : msg -> Attribute msg

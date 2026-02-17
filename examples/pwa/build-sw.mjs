@@ -1,0 +1,10 @@
+import { generateSW } from "./elm-pwa/js/src/build.js";
+import { writeFileSync } from "node:fs";
+
+writeFileSync(
+  "static/sw.js",
+  generateSW({
+    cacheName: "elm-pwa-v1",
+    precacheUrls: ["/", "/elm.js", "/main.js", "/style.css", "/manifest.webmanifest"],
+  }),
+);
