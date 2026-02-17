@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#60B5CC" />
+        <title>Elm PWA</title>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+        <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+        <div id="app"></div>
+        <script src="/elm.js"></script>
+        <script>
+            // Initialize the Elm app with the current online status
+            var app = Elm.Main.init({
+                node: document.getElementById("app"),
+                flags: navigator.onLine,
+            });
+
+            // --- Online/Offline Detection ---
+
+            window.addEventListener("online", function () {
+                app.ports.onConnectionChange.send(true);
+            });
+            window.addEventListener("offline", function () {
+                app.ports.onConnectionChange.send(false);
+            });
+
+            // --- Service Worker Registration & Update Flow ---
+
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", function () {
+                    navigator.serviceWorker
+                        .register("/sw.js")
+                        .then(function (reg) {
+                            // A new SW is already waiting (e.g., user reopened the tab)
+                            if (reg.waiting) {
+                                app.ports.onNewVersionAvailable.send(null);
+                            }
+
+                            // Detect new service workers becoming available
+                            reg.addEventListener("updatefound", function () {
+                                var newWorker = reg.installing;
+                                newWorker.addEventListener(
+                                    "statechange",
+                                    function () {
+                                        if (
+                                            newWorker.state === "installed" &&
+                                            navigator.serviceWorker.controller
+                                        ) {
+                                            app.ports.onNewVersionAvailable.send(
+                                                null,
+                                            );
+                                        }
+                                    },
+                                );
+                            });
+
+                            // Check for updates periodically (SPAs stay on the same page)
+                            setInterval(
+                                function () {
+                                    reg.update();
+                                },
+                                60 * 60 * 1000,
+                            );
+
+                            // Also check when the user returns to the tab
+                            document.addEventListener(
+                                "visibilitychange",
+                                function () {
+                                    if (
+                                        document.visibilityState === "visible"
+                                    ) {
+                                        reg.update();
+                                    }
+                                },
+                            );
+                        });
+
+                    // When the user accepts the update (triggered from Elm via port)
+                    app.ports.acceptUpdate.subscribe(function () {
+                        navigator.serviceWorker
+                            .getRegistration()
+                            .then(function (reg) {
+                                if (reg && reg.waiting) {
+                                    reg.waiting.postMessage({
+                                        type: "SKIP_WAITING",
+                                    });
+                                }
+                            });
+                    });
+
+                    // Reload when the new SW takes control
+                    var refreshing = false;
+                    navigator.serviceWorker.addEventListener(
+                        "controllerchange",
+                        function () {
+                            if (!refreshing) {
+                                refreshing = true;
+                                location.reload();
+                            }
+                        },
+                    );
+                });
+            }
+
+            // --- Install Prompt ---
+
+            var deferredPrompt;
+            window.addEventListener("beforeinstallprompt", function (e) {
+                e.preventDefault();
+                deferredPrompt = e;
+                app.ports.onInstallAvailable.send(null);
+            });
+
+            app.ports.requestInstall.subscribe(function () {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function () {
+                        deferredPrompt = null;
+                    });
+                }
+            });
+
+            window.addEventListener("appinstalled", function () {
+                app.ports.onInstalled.send(null);
+            });
+        </script>
+    </body>
+</html>
