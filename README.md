@@ -129,7 +129,20 @@ See [examples/concurrent-task](examples/concurrent-task/) for a working demo.
 
 ### IndexedDB with elm-indexeddb
 
-TODO
+[elm-indexeddb](https://github.com/mpizenberg/elm-indexeddb) provides IndexedDB support for Elm
+via [elm-concurrent-task](#task-ports-with-elm-concurrent-task).
+It uses phantom types to enforce key discipline at compile time —
+you cannot accidentally call `put` on a `GeneratedKey` store or `insert` on an `InlineKey` store.
+Setting it up requires installing both the Elm source and the JS companion (`createTasks()`).
+
+Three store types: `InlineKey` (key extracted from value at a key path),
+`ExplicitKey` (key provided on every write), and `GeneratedKey` (auto-incremented by IndexedDB).
+Define a schema with a version number (bump to trigger migrations), then `open` it.
+
+All operations return `ConcurrentTask Error` values, so they compose with `andThen`,
+run concurrently with `map2`/`batch`, and handle errors uniformly.
+
+See [examples/indexeddb](examples/indexeddb/) for a working demo.
 
 ### Navigation and URL handling with ports and elm-app-url
 

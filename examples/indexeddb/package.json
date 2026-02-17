@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {
+    "@andrewmacmurray/elm-concurrent-task": "^2.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3"
+  }
+}
