@@ -42,11 +42,19 @@ caches are only accessible from the current branch, parent branches, or the main
 
 ### Code Formatting with elm-format
 
-https://github.com/avh4/elm-format
+[elm-format](https://github.com/avh4/elm-format) formats Elm source code according to a standard
+set of rules based on the official Elm Style Guide. Run `elm-format .` (or `elm-format Main.elm --yes`)
+to format files. Most editors support format-on-save integration.
 
 ### Linting with elm-review
 
-https://github.com/jfmengels/node-elm-review
+[elm-review](https://github.com/jfmengels/node-elm-review) is a static analysis tool for Elm.
+It ships with no built-in rules — you configure them in a `review/` directory
+(`ReviewConfig.elm` + `elm.json`) by installing rule packages (e.g. `jfmengels/elm-review-unused`).
+
+Key commands: `elm-review init` scaffolds the config, `elm-review` analyzes the project,
+`elm-review --fix` offers automatic fixes.
+Quick test without setup: `npx elm-review --template jfmengels/elm-review-unused/example`.
 
 ### Hot Reload with elm-watch
 
@@ -54,7 +62,10 @@ https://github.com/lydell/elm-watch
 
 ### Local Docs with elm-doc-preview
 
-https://github.com/dmy/elm-doc-preview
+[elm-doc-preview](https://github.com/dmy/elm-doc-preview) is an offline documentation previewer
+for Elm packages and applications, with hot reloading. Run `elm-doc-preview` (or `edp`) from
+your project directory. For applications, create an `elm-application.json` specifying
+`exposed-modules`, `name`, `summary`, and `version`.
 
 ### Local Packages with elm-wrap
 
