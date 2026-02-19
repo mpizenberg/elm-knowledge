@@ -112,9 +112,33 @@ for Elm packages and applications, with hot reloading. Run `elm-doc-preview` (or
 your project directory. For applications, create an `elm-application.json` specifying
 `exposed-modules`, `name`, `summary`, and `version`.
 
-### Local Packages with elm-wrap
+### Local packages development
 
-https://github.com/dsimunic/elm-wrap
+The Elm compiler hard-codes `package.elm-lang.org` as the sole registry
+and has no built-in mechanism for local or private packages.
+See [local-packages.md](reports/local-packages.md) for a detailed survey of all tools and approaches.
+
+**Simplest approach** — add the local package's `src/` to the app's `source-directories`:
+
+```json
+{ "source-directories": ["src", "../my-local-package/src"] }
+```
+
+Caveats: must manually sync transitive dependencies, only works in applications, must clean up before committing.
+Git submodules or subtrees can formalize this pattern.
+
+**Active tools:**
+
+- [zokka](https://github.com/Zokka-Dev/zokka-compiler) — conservative compiler fork (beta, bidirectionally compatible with Elm 0.19.1).
+  Adds custom package repositories, dependency overrides (`zokka-package-overrides` in `elm.json`),
+  and single-package locations. Also merges community bug fixes (TCO, etc.).
+  Install: `npx zokka`. Publish to custom repos with `zokka publish <url>`.
+- [elm-wrap](https://github.com/dsimunic/elm-wrap) — CLI wrapper (pre-1.0, macOS ARM64 / Linux).
+  Intercepts the compiler's network requests via a proxy trick, no compiler fork needed.
+  Local dev via `wrap package install me/pkg --local-dev --from-path ../pkg-src` (symlinks into `ELM_HOME`).
+  Also supports GitHub URL installs, offline mode, and package publishing.
+- [elm-janitor/apply-patches](https://github.com/elm-janitor/apply-patches) — replaces core packages
+  (`elm/core`, `elm/json`, `elm/parser`) in `ELM_HOME` with community-patched versions. v1.0.0.
 
 ### Compress with esbuild and brotli
 
