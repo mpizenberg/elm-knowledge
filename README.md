@@ -81,6 +81,7 @@ The core layout model is unchanged: `el`/`row`/`column` with `padding` + `spacin
 and sizing via `fill`/`shrink`/`portion n`.
 
 Key v2 additions:
+
 - `Ui.Responsive` — pure CSS breakpoints (no JS flags or subscriptions)
 - `Ui.Anim` — built-in transitions, keyframes, and presets (replaces `elm-animator`)
 - `Ui.Prose` — paragraphs and semantic lists
@@ -101,6 +102,7 @@ It enables running a tree of tasks concurrently, and calling JS as tasks.
 Setting it up requires installing both the Elm package and the JS package (`@andrewmacmurray/elm-concurrent-task`).
 
 Built-in modules provide drop-in replacements for common `elm/core` and `elm/browser` tasks:
+
 - `ConcurrentTask.Http` — `get`, `post`, `request` (like `elm/http` but composable)
 - `ConcurrentTask.Browser.Dom` — `focus`, `blur`, `getElement`, `getViewport`, `setViewport`
 - `ConcurrentTask.Time` — `now`, `here`, `getZoneName`, plus `withDuration` for timing tasks
@@ -112,6 +114,7 @@ The `function` string maps to a JS function registered with `ConcurrentTask.regi
 JS functions return a value for success or `{ error: ... }` for expected errors.
 
 Composition:
+
 - **Concurrent**: `map2`, `map3`, `batch` run tasks in parallel
 - **Sequential**: `andThen` chains tasks where the second depends on the first's result
 
@@ -144,6 +147,23 @@ run concurrently with `map2`/`batch`, and handle errors uniformly.
 
 See [examples/indexeddb](examples/indexeddb/) for a working demo.
 
+### Progressive Web Apps with elm-pwa
+
+[elm-pwa](https://github.com/mpizenberg/elm-pwa) bridges Elm applications and browser PWA APIs
+through a port-based system. It manages service worker lifecycles, installation prompts,
+connectivity detection, and push notifications.
+
+Two paired ports (`pwaIn` / `pwaOut`) handle bidirectional communication.
+Events (e.g. `ConnectionChanged`, `UpdateAvailable`, `InstallAvailable`, `PushSubscription`)
+flow from browser APIs to Elm; commands (`acceptUpdate`, `requestInstall`, `subscribePush`, etc.)
+flow from Elm to browser APIs.
+
+The JS companion provides `generateSW()` to create a service worker with built-in caching strategies
+(navigation fallback, network-only, network-first, cache-first), and `init()` to wire everything up
+including automatic update checks on tab visibility changes.
+
+See the [elm-pwa demo](https://github.com/mpizenberg/elm-pwa/tree/main/examples/demo) for a working example.
+
 ### Navigation and URL handling with ports and elm-app-url
 
 Use `Browser.element` with two ports instead of `Browser.application`:
@@ -171,6 +191,7 @@ In **inline mode**, all translations are embedded in the generated Elm code (no 
 In **dynamic mode**, translations are loaded at runtime from optimized JSON files.
 
 Key patterns:
+
 - Detect language from `navigator.languages` by iterating and calling `languageFromString` on each tag
 - Switch language by reinitializing `I18n` (inline) or via `switchLanguage` (dynamic)
 - Keep `document.documentElement.lang` in sync via a port
@@ -183,11 +204,13 @@ Elm's `Int` overflows at 21! (exceeds `2^53 - 1`). For crypto, financial math, o
 use [dwayne/elm-natural](https://github.com/dwayne/elm-natural) (non-negative) or [dwayne/elm-integer](https://github.com/dwayne/elm-integer) (signed).
 
 Key API:
+
 - Create: `Natural.fromString` (supports `0b`, `0o`, `0x` prefixes), `Natural.fromSafeInt` (for constants)
 - Arithmetic: `add`, `mul`, `sub` (saturating), `divModBy`, `exp`
 - Display: `toString`, `toHexString`, `toBinaryString`, `toOctalString`
 
 Gotchas:
+
 - `Natural.sub a b` returns `zero` when `b > a` (saturating subtraction)
 - `Natural.toInt` wraps: returns `n mod (maxSafeInt + 1)` for large values
 - Equality `==` works on `Natural` (unlike `AnyDict`)
@@ -225,6 +248,7 @@ type RemoteData e a = NotAsked | Loading | Failure e | Success a
 `WebData a` is an alias for `RemoteData Http.Error a`.
 
 Key pattern for HTTP integration:
+
 ```elm
 Http.expectJson (RemoteData.fromResult >> GotPosts) decoder
 ```
@@ -246,10 +270,12 @@ inventory = Dict.Any.empty fruitToString
 ```
 
 Key patterns:
+
 - Create: `Dict.Any.empty toComparable`, `Dict.Any.fromList toComparable pairs`
 - Query/modify: `get`, `insert`, `update`, `remove` — same API as `Dict`
 
 Gotchas:
+
 - `toComparable` is provided once at creation; all operations use the stored function
 - `toComparable` must be injective (every distinct key must produce a different comparable)
 - Don't use `==` to compare `AnyDict` values (causes runtime exception). Use `Dict.Any.equal` instead
