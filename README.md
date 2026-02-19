@@ -55,10 +55,22 @@ https://github.com/lamdera/compiler
 
 ## Packages
 
-### Virtual Dom kernel patching with elm-safe-virtual-dom
+### Virtual DOM kernel patching with elm-safe-virtual-dom
 
-https://github.com/lydell/elm-safe-virtual-dom
-https://github.com/cardano-foundation/cardano-governance-voting-tool/tree/production/frontend#virtual-dom-kernel-patching
+[elm-safe-virtual-dom](https://github.com/lydell/elm-safe-virtual-dom) provides patched versions
+of `elm/virtual-dom`, `elm/html`, and `elm/browser` that fix DOM-related bugs.
+It makes Elm apps robust against browser extensions (Grammarly, etc.) and page translators
+(Google Translate) that modify the DOM and would otherwise crash the app.
+It also fixes the `Html.map` bug. NoRedInk reported going from thousands of virtual DOM errors per day to zero.
+
+Since kernel code cannot be published on package.elm-lang.org, installation requires
+copying forked packages into a local `ELM_HOME`. The repo provides a `replace-kernel-packages.mjs`
+Node.js script for this. Set `ELM_HOME=elm-stuff/elm-home/` to keep the patched cache project-local.
+In practice, add a setup script (e.g. `npm run vdom:patch`) that runs the patching,
+then compile with `ELM_HOME=elm-stuff/elm-home/ elm make ...`.
+
+Key breaking change: Elm no longer empties mount elements — only elements marked with `data-elm`
+are virtualized, which also enables server-side rendering.
 
 ### Extra Core Functions with core-extra
 
