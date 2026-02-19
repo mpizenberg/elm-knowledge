@@ -1,7 +1,0 @@
-{
-    "private": true,
-    "type": "module",
-    "devDependencies": {
-        "esbuild": "^0.25.0"
-    }
-}
