@@ -158,11 +158,37 @@ Lamdera is a real time-saver if your project fits the constraints it imposes.
 
 ### Code generation with elm-codegen
 
-https://github.com/mdgriffith/elm-codegen
+[elm-codegen](https://github.com/mdgriffith/elm-codegen) generates Elm source files programmatically.
+You build an AST with a composable Elm API (`Elm.Expression`, `Elm.Declaration`, `Elm.File`)
+and get properly formatted code with auto-inferred type signatures and imports.
 
-### OpenAPI generators
+Key commands: `elm-codegen init` scaffolds a `codegen/` directory with `Generate.elm`,
+`elm-codegen run` executes it (supports `--output`, `--watch`, `--flags`),
+and `elm-codegen install <package>` generates typed helper bindings under `codegen/Gen/`
+so your generator can reference any package's API (e.g. `Gen.Html.div`).
 
-https://github.com/wolfadex/elm-open-api-cli
+Helper modules provide several variants: direct bindings, `call_` (accepts `Elm.Expression` args),
+`make_` (custom type constructors), `values_`, and `annotation_`.
+Entry points: `Generate.run` (no input), `Generate.fromJson` (JSON flags), `fromText`, `fromDirectory`.
+
+### OpenAPI generators with elm-open-api-cli
+
+[elm-open-api-cli](https://github.com/wolfadex/elm-open-api-cli) generates an Elm SDK
+from an OpenAPI spec. Install with `npm install -D elm-open-api`, then run:
+
+```bash
+npx elm-open-api ./path/to/oas.json --module-name="MyApi" --output-dir="src"
+```
+
+Generates four modules: `Api` (HTTP request functions), `Json` (encoders/decoders),
+`Types` (type definitions — enums become custom types), and `OpenApi/Common` (shared utilities).
+Supports `elm/http`, Lamdera's `Effect.Http`, and `elm-pages` `BackendTask.Http`.
+
+Uses elm-codegen internally. Swagger 2.0 specs are auto-converted to OpenAPI 3.x (via `--auto-convert-swagger`).
+The `--overrides` flag lets you patch malformed specs, and `--generateTodos` emits `Debug.todo`
+stubs for unsupported endpoints instead of failing.
+
+Gotcha: multi-file specs with `$ref` to separate files are not yet supported — the spec must be a single file.
 
 ## Packages
 
