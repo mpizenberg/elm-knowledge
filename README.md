@@ -17,7 +17,28 @@ It contains both generic information, and some of my preferences.
 
 ### Tooling Installation with elm-tooling-cli
 
-https://github.com/elm-tooling/elm-tooling-cli
+[elm-tooling-cli](https://github.com/elm-tooling/elm-tooling-cli) manages Elm tool versions
+(elm, elm-format, elm-json, elm-test-rs) via an `elm-tooling.json` file,
+as a faster and more secure drop-in replacement for installing them through npm.
+
+Setup: `npx elm-tooling init` generates the config, `npx elm-tooling install` fetches the tools.
+Add `"postinstall": "elm-tooling install"` to `package.json` scripts so tools are installed
+automatically on `npm install`.
+
+### CI with elm-tooling-action
+
+[elm-tooling-action](https://github.com/mpizenberg/elm-tooling-action) is a GitHub Action
+that installs Elm tools (elm, elm-format, elm-json, elm-test-rs) from `elm-tooling.json`
+and caches `ELM_HOME` — no npm or package.json required.
+
+```yaml
+- uses: mpizenberg/elm-tooling-action@v1.7
+  with:
+    cache-key: elm-home-${{ hashFiles('elm-tooling.json', 'elm.json') }}
+```
+
+Tip: run the action on your main branch first to seed the cache, since GitHub Actions
+caches are only accessible from the current branch, parent branches, or the main branch.
 
 ### Code Formatting with elm-format
 
@@ -44,10 +65,6 @@ https://github.com/dsimunic/elm-wrap
 ```
 "compress": "esbuild static/main.js --minify --allow-overwrite --outfile=static/main.js && brotli -f -Z static/main.js static/elm-cardano.js static/elm-concurrent-task.js static/storage.js static/json-ld-contexts.js static/pkg-uplc-wasm/pkg-web/uplc_wasm_bg.wasm static/css/output.css",
 ```
-
-### CI with elm-tooling-action
-
-https://github.com/mpizenberg/elm-tooling-action
 
 ### Lamdera
 
