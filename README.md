@@ -50,11 +50,32 @@ caches are only accessible from the current branch, parent branches, or the main
 
 ### Update dependencies with elm-json
 
-elm-json
+[elm-json](https://github.com/zwilias/elm-json) is a CLI tool for managing Elm dependencies.
+Key commands: `elm-json install elm/http` (or `elm/http@2` for a major version),
+`elm-json uninstall elm/html`, `elm-json upgrade` (patch/minor only; `--unsafe` allows major bumps),
+and `elm-json tree` to visualize the dependency graph.
+
+For applications it pins exact versions and resolves indirect deps;
+for packages it sets version ranges. Note: `upgrade` only works for applications, not packages.
 
 ### Publish elm packages with elm-publish-action
 
-https://github.com/dillonkearns/elm-publish-action
+[elm-publish-action](https://github.com/dillonkearns/elm-publish-action) is a GitHub Action
+that automatically publishes your Elm package when the `elm.json` version is unpublished
+and CI passes on `main`/`master`. It creates the Git tag and runs `elm publish` for you.
+
+```yaml
+- uses: dillonkearns/elm-publish-action@v2
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    path-to-elm: ./node_modules/.bin/elm
+```
+
+Workflow: run `elm bump` on a branch, merge to main, CI publishes automatically.
+Use `dry-run: true` (without `github-token`) to test without publishing.
+
+Gotcha: the first release (1.0.0) must be published manually with `elm publish` — the action
+skips packages that have never been published.
 
 ### Code Formatting with elm-format
 
