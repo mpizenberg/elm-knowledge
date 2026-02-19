@@ -12,6 +12,14 @@ It contains both generic information, and some of my preferences.
 ## Design Patterns
 
 - Extensible record phantom builder pattern (https://www.youtube.com/watch?v=Trp3tmpMb-o)
+- https://sporto.github.io/elm-patterns/index.html
+
+## Some GOATs 🐐
+
+These are the GitHub handles of some Elm developers (or orgs) that IMO have greatly contributed to the Elm community and impacted how I write Elm code, and the tools I use.
+In no particular order:
+
+evancz, wolfadex, miniBill, lydell, jfmengels, dillonkearns, lue-bird, mdgriffith, dmy, andrewMacmurray, zwilias, avh4, rtfeldman, supermario, MartinSStewart, janiczek, dwayne, jxxcarlson, krisajenkins, ryannhg, robinhegan, ianmackenzie, ...
 
 ## Tooling
 
@@ -39,6 +47,14 @@ and caches `ELM_HOME` — no npm or package.json required.
 
 Tip: run the action on your main branch first to seed the cache, since GitHub Actions
 caches are only accessible from the current branch, parent branches, or the main branch.
+
+### Update dependencies with elm-json
+
+elm-json
+
+### Publish elm packages with elm-publish-action
+
+https://github.com/dillonkearns/elm-publish-action
 
 ### Code Formatting with elm-format
 
@@ -115,6 +131,14 @@ while providing additional optimizations and features.
 Lamdera is also a [full-stack Elm platform](https://lamdera.com/) where both frontend and backend
 are written in Elm, with messages passed between them without glue code.
 Lamdera is a real time-saver if your project fits the constraints it imposes.
+
+### Code generation with elm-codegen
+
+https://github.com/mdgriffith/elm-codegen
+
+### OpenAPI generators
+
+https://github.com/wolfadex/elm-open-api-cli
 
 ## Packages
 
