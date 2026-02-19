@@ -51,7 +51,13 @@ https://github.com/mpizenberg/elm-tooling-action
 
 ### Lamdera
 
-https://github.com/lamdera/compiler
+The [Lamdera compiler](https://github.com/lamdera/compiler) is an open-source, backwards-compatible
+un-fork of the Elm compiler. It can compile any Elm 0.19 project using the same commands,
+while providing additional optimizations and features.
+
+Lamdera is also a [full-stack Elm platform](https://lamdera.com/) where both frontend and backend
+are written in Elm, with messages passed between them without glue code.
+Lamdera is a real time-saver if your project fits the constraints it imposes.
 
 ## Packages
 
