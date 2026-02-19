@@ -62,7 +62,13 @@ https://github.com/cardano-foundation/cardano-governance-voting-tool/tree/produc
 
 ### Extra Core Functions with core-extra
 
-https://github.com/elmcraft/core-extra
+[elmcraft/core-extra](https://github.com/elmcraft/core-extra) extends Elm's standard library
+with community-contributed utility functions. It consolidates several previously separate packages
+(elm-community extras, cmd-extra, tuple-extra, set-extra, elm-ordering) into a single dependency.
+
+Modules: `Array.Extra`, `Basics.Extra`, `Char.Extra`, `Cmd.Extra`, `Dict.Extra`, `Float.Extra`,
+`List.Extra`, `Maybe.Extra`, `Order.Extra`, `Result.Extra`, `Set.Extra`, `String.Extra`,
+`Tuple.Extra`, `Triple.Extra`.
 
 ### UI with elm-ui
 
