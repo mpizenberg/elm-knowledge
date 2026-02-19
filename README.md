@@ -58,7 +58,36 @@ Quick test without setup: `npx elm-review --template jfmengels/elm-review-unused
 
 ### Hot Reload with elm-watch
 
-https://github.com/lydell/elm-watch
+[elm-watch](https://github.com/lydell/elm-watch) watches Elm source files, recompiles on change,
+and hot-reloads the browser while preserving application state.
+It intentionally only handles Elm compilation — pair it with your own CSS tools, JS bundler
+(esbuild, Vite, etc.), and a process orchestrator like [run-pty](https://github.com/lydell/run-pty).
+
+Configure targets in `elm-watch.json`:
+
+```json
+{
+  "targets": {
+    "My app": {
+      "inputs": ["src/Main.elm"],
+      "output": "build/main.js"
+    }
+  }
+}
+```
+
+Two modes: `elm-watch make` (one-shot, supports `--optimize`) and `elm-watch hot`
+(persistent watcher with a browser UI for status, errors, and toggling debug/standard/optimize
+per target). The compiled JS must be loaded via a `<script>` tag (not `import`) since
+elm-watch relies on the `window.Elm` global.
+
+Hot reloading is ~90% reliable: `view` changes are always safe, but `Model`/`Msg` type changes
+can occasionally slip through undetected — elm-watch catches the resulting runtime error
+and falls back to a full page reload.
+
+Optional `postprocess` field runs a transform on the output JS (e.g. string replacements
+in dev, minification in optimize mode). Use `elm-watch-node` for fast in-process execution
+instead of spawning an external command.
 
 ### Local Docs with elm-doc-preview
 
