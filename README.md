@@ -13,6 +13,8 @@ It contains both generic information, and some of my preferences.
 
 - Extensible record phantom builder pattern (https://www.youtube.com/watch?v=Trp3tmpMb-o)
 - https://sporto.github.io/elm-patterns/index.html
+- Send bytes through a port: https://github.com/lue-bird/elm-bytes-ports-benchmark
+- XHRHttpRequest monkeypatch to send bytes at zero cost: https://github.com/mpizenberg/elm-http-monkeys
 
 ## Some GOATs 🐐
 
