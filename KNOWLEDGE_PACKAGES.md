@@ -275,6 +275,32 @@ Gotchas:
 
 See [examples/any-dict](examples/any-dict/) for a working demo.
 
+## Consistent forms with elm-form
+
+[dwayne/elm-form](https://github.com/dwayne/elm-form) is a small (~200 lines), UI-agnostic form library
+that decouples form state, validation, and field access from rendering. It works with elm-ui, elm-css,
+plain HTML, or any view layer. Its companion packages `dwayne/elm-field` (typed fields with parsing,
+trimming, dirty tracking) and `dwayne/elm-validation` (error-accumulating applicative) provide the
+field and validation primitives.
+
+A form is defined by four things: a **State** record of `Field` values, an **Accessors** record
+of `{ get, modify }` pairs, a custom **Error** union type, and a **validate** function that produces
+a typed **Output** via an applicative pipeline.
+
+Key patterns:
+
+- `Form.get .field form` / `Form.modify .field f form` — read and update fields
+- `Form.isInvalid form` / `Form.validateAsMaybe form` — check validity and extract output
+- `Form.List` — dynamic collections of sub-forms (add/remove) with `Form.List.validate`
+- `Field.isDirty` — show errors only after user interaction
+- `V.andThen` — conditional/branching validation (e.g. different fields per format selection)
+- Non-`Field` values in state (e.g. `TitleStatus`) with their own accessors for integrating
+  async/remote validation results into the validation function
+
+See [examples/forms/README.md](examples/forms/README.md) for a working demo covering custom field types, dynamic
+speaker lists, format-dependent branching, and simulated remote title uniqueness checking.
+See [reports/forms.md](reports/forms.md) for a detailed comparison of many Elm form packages.
+
 ## Cardano Interop with elm-cardano
 
 https://github.com/elm-cardano/elm-cardano
