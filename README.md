@@ -359,6 +359,34 @@ The [elm-app-url package](https://github.com/lydell/elm-app-url) is used to pars
 
 See [examples/navigation](examples/navigation/) for a working demo.
 
+### WebSockets with elm-websocket-manager
+
+[elm-websocket-manager](https://github.com/mpizenberg/elm-websocket-manager) provides type-safe WebSocket
+management for Elm with automatic reconnection and binary data support.
+
+Setup requires two ports (`wsOut`, `wsIn`) and a JS companion (`import * as wsm from "elm-websocket-manager"; wsm.init({ wsOut: app.ports.wsOut, wsIn: app.ports.wsIn });`).
+
+Send text with `WS.sendString`, binary with `WS.sendBytes`. Binary data uses an XHR monkeypatch
+to transfer `Bytes` through ports with zero JSON overhead.
+
+Handle events by pattern matching on `WS.Event`:
+
+```elm
+case event of
+    WS.Opened                  -> -- connected
+    WS.MessageReceived data    -> -- text message
+    WS.BinaryReceived bytes    -> -- binary message (Bytes)
+    WS.Closed info             -> -- closed {code, reason, wasClean}
+    WS.Reconnecting info       -> -- {attempt, nextDelayMs, maxRetries}
+    WS.Reconnected             -> -- back online after reconnection
+    WS.ReconnectFailed         -> -- gave up reconnecting
+    WS.Error message           -> -- error
+    WS.NoOp                    -> ( model, Cmd.none )
+```
+
+See the [example/](https://github.com/mpizenberg/elm-websocket-manager/tree/main/example) directory
+for a runnable echo client with text and binary messaging, connection state UI, and reconnection.
+
 ### Languages i18n with travelm-agency
 
 [travelm-agency](https://github.com/anmolitor/travelm-agency) is a compile-time i18n solution for Elm.
