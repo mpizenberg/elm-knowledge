@@ -8,8 +8,10 @@ import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
 import Html.Keyed as HK
+import Process
 import SpeakerForm
 import TalkForm
+import Task
 
 
 
@@ -18,10 +20,11 @@ import TalkForm
 
 main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = init
+    Browser.element
+        { init = \_ -> ( init, Cmd.none )
         , update = update
         , view = view
+        , subscriptions = \_ -> Sub.none
         }
 
 
@@ -32,6 +35,7 @@ main =
 type alias Model =
     { talk : TalkForm.Form
     , submitted : Maybe TalkForm.Output
+    , existingTitles : List String
     }
 
 
@@ -39,6 +43,11 @@ init : Model
 init =
     { talk = TalkForm.form
     , submitted = Nothing
+    , existingTitles =
+        [ "Introduction to Elm"
+        , "Type-Safe Web Apps"
+        , "Functional Reactive Programming"
+        ]
     }
 
 
@@ -48,9 +57,12 @@ init =
 
 type Msg
     = InputTitle String
+    | TitleCheckResult String
     | InputAbstract String
     | InputFormat String
     | InputDuration String
+    | InputMaxParticipants String
+    | InputEquipment String
     | InputSpeakerName Id String
     | InputSpeakerEmail Id String
     | InputSpeakerBio Id String
@@ -59,41 +71,121 @@ type Msg
     | Submit
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         InputTitle s ->
-            { model | talk = Form.modify .title (Field.setFromString s) model.talk }
+            let
+                trimmed =
+                    String.trim s
+
+                newTalk =
+                    model.talk
+                        |> Form.modify .title (Field.setFromString s)
+                        |> Form.set .titleStatus
+                            (if trimmed == "" then
+                                TalkForm.NotChecked
+
+                             else
+                                TalkForm.Checking
+                            )
+
+                cmd =
+                    if trimmed == "" then
+                        Cmd.none
+
+                    else
+                        Process.sleep 2000
+                            |> Task.perform (\_ -> TitleCheckResult trimmed)
+            in
+            ( { model | talk = newTalk }, cmd )
+
+        TitleCheckResult checkedTitle ->
+            let
+                currentTitle =
+                    Form.get .title model.talk
+                        |> Field.toRawString
+                        |> String.trim
+            in
+            if checkedTitle == currentTitle then
+                let
+                    isTaken =
+                        List.any
+                            (\t -> String.toLower t == String.toLower checkedTitle)
+                            model.existingTitles
+
+                    status =
+                        if isTaken then
+                            TalkForm.Taken
+
+                        else
+                            TalkForm.Available
+                in
+                ( { model | talk = Form.set .titleStatus status model.talk }
+                , Cmd.none
+                )
+
+            else
+                -- Title changed since check was initiated, ignore stale result
+                ( model, Cmd.none )
 
         InputAbstract s ->
-            { model | talk = Form.modify .abstract (Field.setFromString s) model.talk }
+            ( { model | talk = Form.modify .abstract (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
 
         InputFormat s ->
-            { model | talk = Form.modify .format (Field.setFromString s) model.talk }
+            ( { model | talk = Form.modify .format (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
 
         InputDuration s ->
-            { model | talk = Form.modify .duration (Field.setFromString s) model.talk }
+            ( { model | talk = Form.modify .duration (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
+
+        InputMaxParticipants s ->
+            ( { model | talk = Form.modify .maxParticipants (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
+
+        InputEquipment s ->
+            ( { model | talk = Form.modify .equipment (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
 
         InputSpeakerName id s ->
-            { model | talk = Form.modify (\a -> a.speakerName id) (Field.setFromString s) model.talk }
+            ( { model | talk = Form.modify (\a -> a.speakerName id) (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
 
         InputSpeakerEmail id s ->
-            { model | talk = Form.modify (\a -> a.speakerEmail id) (Field.setFromString s) model.talk }
+            ( { model | talk = Form.modify (\a -> a.speakerEmail id) (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
 
         InputSpeakerBio id s ->
-            { model | talk = Form.modify (\a -> a.speakerBio id) (Field.setFromString s) model.talk }
+            ( { model | talk = Form.modify (\a -> a.speakerBio id) (Field.setFromString s) model.talk }
+            , Cmd.none
+            )
 
         AddSpeaker ->
-            { model | talk = Form.update .addSpeaker model.talk }
+            ( { model | talk = Form.update .addSpeaker model.talk }
+            , Cmd.none
+            )
 
         RemoveSpeaker id ->
-            { model | talk = Form.update (\a -> a.removeSpeaker id) model.talk }
+            ( { model | talk = Form.update (\a -> a.removeSpeaker id) model.talk }
+            , Cmd.none
+            )
 
         Submit ->
-            { model
+            ( { model
                 | submitted = Form.validateAsMaybe model.talk
                 , talk = TalkForm.form
-            }
+              }
+            , Cmd.none
+            )
 
 
 
@@ -105,6 +197,11 @@ view model =
     H.div []
         [ H.h1 [] [ H.text "Conference Talk Submission" ]
         , H.p [ HA.class "subtitle" ] [ H.text "Submit a talk proposal with one or more speakers." ]
+        , H.div [ HA.class "tip" ]
+            [ H.text "Try entering the title "
+            , H.strong [] [ H.text "\"Introduction to Elm\"" ]
+            , H.text " — it will be flagged as already taken after a simulated server check."
+            ]
         , viewForm model.talk
         , viewOutput model.submitted
         ]
@@ -115,6 +212,9 @@ viewForm talk =
     let
         state =
             Form.toState talk
+
+        selectedFormat =
+            Form.get .format talk |> Field.toMaybe
     in
     H.form [ HE.onSubmit Submit, HA.novalidate True ]
         [ viewTextField
@@ -125,6 +225,7 @@ viewForm talk =
             , onInput = InputTitle
             , hint = "At least 5 characters"
             }
+        , viewTitleStatus (Form.get .titleStatus talk)
         , viewTextareaField
             { id = "abstract"
             , label = "Abstract"
@@ -146,14 +247,7 @@ viewForm talk =
                 , ( "workshop", "Workshop (2 hours)" )
                 ]
             }
-        , viewTextField
-            { id = "duration"
-            , label = "Duration (minutes)"
-            , required = False
-            , field = Form.get .duration talk
-            , onInput = InputDuration
-            , hint = "Optional override, 1-480 minutes"
-            }
+        , viewFormatFields selectedFormat talk
         , H.h2 [] [ H.text "Speakers" ]
         , viewSpeakers state.speakers
         , H.button
@@ -170,6 +264,67 @@ viewForm talk =
                 [ H.text "Submit Proposal" ]
             ]
         ]
+
+
+viewTitleStatus : TalkForm.TitleStatus -> H.Html Msg
+viewTitleStatus status =
+    case status of
+        TalkForm.NotChecked ->
+            H.text ""
+
+        TalkForm.Checking ->
+            H.div [ HA.class "title-status checking" ]
+                [ H.text "Checking availability..." ]
+
+        TalkForm.Available ->
+            H.div [ HA.class "title-status available" ]
+                [ H.text "Title is available" ]
+
+        TalkForm.Taken ->
+            H.div [ HA.class "title-status taken" ]
+                [ H.text "This title is already taken." ]
+
+
+viewFormatFields : Maybe TalkForm.Format -> TalkForm.Form -> H.Html Msg
+viewFormatFields maybeFormat talk =
+    case maybeFormat of
+        Just TalkForm.Talk ->
+            H.div [ HA.class "format-details" ]
+                [ viewTextField
+                    { id = "duration"
+                    , label = "Duration (minutes)"
+                    , required = False
+                    , field = Form.get .duration talk
+                    , onInput = InputDuration
+                    , hint = "Optional override, 1-480 minutes"
+                    }
+                ]
+
+        Just TalkForm.Lightning ->
+            H.text ""
+
+        Just TalkForm.Workshop ->
+            H.div [ HA.class "format-details" ]
+                [ viewTextField
+                    { id = "max-participants"
+                    , label = "Max participants"
+                    , required = True
+                    , field = Form.get .maxParticipants talk
+                    , onInput = InputMaxParticipants
+                    , hint = "1-500 participants"
+                    }
+                , viewTextareaField
+                    { id = "equipment"
+                    , label = "Required equipment"
+                    , required = False
+                    , field = Form.get .equipment talk
+                    , onInput = InputEquipment
+                    , hint = "Optional: projector, whiteboard, etc."
+                    }
+                ]
+
+        Nothing ->
+            H.text ""
 
 
 viewSpeakers : Form.List.Forms SpeakerForm.Form -> H.Html Msg
@@ -421,17 +576,9 @@ viewOutput maybeOutput =
                      , H.dt [] [ H.text "Abstract" ]
                      , H.dd [] [ H.text output.abstract ]
                      , H.dt [] [ H.text "Format" ]
-                     , H.dd [] [ H.text (TalkForm.formatToString output.format) ]
+                     , H.dd [] [ H.text (formatOutputLabel output.format) ]
                      ]
-                        ++ (case output.duration of
-                                Just d ->
-                                    [ H.dt [] [ H.text "Duration" ]
-                                    , H.dd [] [ H.text (String.fromInt d ++ " minutes") ]
-                                    ]
-
-                                Nothing ->
-                                    []
-                           )
+                        ++ viewFormatOutputDetails output.format
                         ++ [ H.dt [] [ H.text "Speakers" ]
                            , H.dd []
                                 [ H.ul []
@@ -454,3 +601,45 @@ viewOutput maybeOutput =
                            ]
                     )
                 ]
+
+
+formatOutputLabel : TalkForm.FormatOutput -> String
+formatOutputLabel fo =
+    case fo of
+        TalkForm.TalkOutput _ ->
+            "Talk"
+
+        TalkForm.LightningOutput ->
+            "Lightning Talk"
+
+        TalkForm.WorkshopOutput _ ->
+            "Workshop"
+
+
+viewFormatOutputDetails : TalkForm.FormatOutput -> List (H.Html Msg)
+viewFormatOutputDetails fo =
+    case fo of
+        TalkForm.TalkOutput (Just d) ->
+            [ H.dt [] [ H.text "Duration" ]
+            , H.dd [] [ H.text (String.fromInt d ++ " minutes") ]
+            ]
+
+        TalkForm.TalkOutput Nothing ->
+            []
+
+        TalkForm.LightningOutput ->
+            []
+
+        TalkForm.WorkshopOutput details ->
+            [ H.dt [] [ H.text "Max participants" ]
+            , H.dd [] [ H.text (String.fromInt details.maxParticipants) ]
+            ]
+                ++ (case details.equipment of
+                        Just eq ->
+                            [ H.dt [] [ H.text "Required equipment" ]
+                            , H.dd [] [ H.text eq ]
+                            ]
+
+                        Nothing ->
+                            []
+                   )

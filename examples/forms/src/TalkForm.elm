@@ -3,8 +3,10 @@ module TalkForm exposing
     , Error(..)
     , Form
     , Format(..)
+    , FormatOutput(..)
     , Output
     , State
+    , TitleStatus(..)
     , form
     , formatToString
     )
@@ -26,18 +28,31 @@ type alias Form =
 
 type alias State =
     { title : Field String
+    , titleStatus : TitleStatus
     , abstract : Field String
     , format : Field Format
     , duration : Field (Maybe Int)
+    , maxParticipants : Field Int
+    , equipment : Field (Maybe String)
     , speakers : Forms SpeakerForm.Form
     }
 
 
+type TitleStatus
+    = NotChecked
+    | Checking
+    | Available
+    | Taken
+
+
 type alias Accessors =
     { title : Accessor State (Field String)
+    , titleStatus : Accessor State TitleStatus
     , abstract : Accessor State (Field String)
     , format : Accessor State (Field Format)
     , duration : Accessor State (Field (Maybe Int))
+    , maxParticipants : Accessor State (Field Int)
+    , equipment : Accessor State (Field (Maybe String))
     , speakers : Accessor State (Forms SpeakerForm.Form)
     , speakerName : Id -> Accessor State (Field String)
     , speakerEmail : Id -> Accessor State (Field String)
@@ -49,17 +64,26 @@ type alias Accessors =
 
 type Error
     = TitleError Field.Error
+    | TitleTakenError
+    | TitleCheckingError
     | AbstractError Field.Error
     | FormatError Field.Error
     | DurationError Field.Error
+    | MaxParticipantsError Field.Error
+    | EquipmentError Field.Error
     | SpeakerError Id SpeakerForm.Error
+
+
+type FormatOutput
+    = TalkOutput (Maybe Int)
+    | LightningOutput
+    | WorkshopOutput { maxParticipants : Int, equipment : Maybe String }
 
 
 type alias Output =
     { title : String
     , abstract : String
-    , format : Format
-    , duration : Maybe Int
+    , format : FormatOutput
     , speakers : List SpeakerForm.Output
     }
 
@@ -163,6 +187,11 @@ durationType =
         (Field.subsetOfInt (\n -> n >= 1 && n <= 480))
 
 
+maxParticipantsType : Field.Type Int
+maxParticipantsType =
+    Field.subsetOfInt (\n -> n >= 1 && n <= 500)
+
+
 
 -- INIT / FORM
 
@@ -179,9 +208,12 @@ form =
 init : State
 init =
     { title = Field.empty titleType
+    , titleStatus = NotChecked
     , abstract = Field.empty abstractType
     , format = Field.empty formatType
     , duration = Field.empty durationType
+    , maxParticipants = Field.empty maxParticipantsType
+    , equipment = Field.empty (Field.optional Field.nonBlankString)
     , speakers = Form.List.fromList [ SpeakerForm.form ]
     }
 
@@ -211,6 +243,10 @@ accessors =
         { get = .title
         , modify = \f state -> { state | title = f state.title }
         }
+    , titleStatus =
+        { get = .titleStatus
+        , modify = \f state -> { state | titleStatus = f state.titleStatus }
+        }
     , abstract =
         { get = .abstract
         , modify = \f state -> { state | abstract = f state.abstract }
@@ -222,6 +258,14 @@ accessors =
     , duration =
         { get = .duration
         , modify = \f state -> { state | duration = f state.duration }
+        }
+    , maxParticipants =
+        { get = .maxParticipants
+        , modify = \f state -> { state | maxParticipants = f state.maxParticipants }
+        }
+    , equipment =
+        { get = .equipment
+        , modify = \f state -> { state | equipment = f state.equipment }
         }
     , speakers =
         { get = .speakers
@@ -255,9 +299,51 @@ accessors =
 
 validate : State -> Validation Error Output
 validate state =
-    Field.succeed Output
-        |> Field.applyValidation (state.title |> Field.mapError TitleError)
-        |> Field.applyValidation (state.abstract |> Field.mapError AbstractError)
-        |> Field.applyValidation (state.format |> Field.mapError FormatError)
-        |> Field.applyValidation (state.duration |> Field.mapError DurationError)
-        |> V.apply (Form.List.validate SpeakerError state.speakers)
+    let
+        validateTitle =
+            Field.validate identity (Field.mapError TitleError state.title)
+                |> V.andThen
+                    (\title ->
+                        case state.titleStatus of
+                            Taken ->
+                                V.fail TitleTakenError
+
+                            Checking ->
+                                V.fail TitleCheckingError
+
+                            _ ->
+                                V.succeed title
+                    )
+
+        validateFormat =
+            Field.validate identity (Field.mapError FormatError state.format)
+                |> V.andThen
+                    (\format ->
+                        case format of
+                            Talk ->
+                                Field.validate TalkOutput
+                                    (Field.mapError DurationError state.duration)
+
+                            Lightning ->
+                                V.succeed LightningOutput
+
+                            Workshop ->
+                                Field.succeed
+                                    (\mp eq ->
+                                        WorkshopOutput
+                                            { maxParticipants = mp
+                                            , equipment = eq
+                                            }
+                                    )
+                                    |> Field.applyValidation
+                                        (Field.mapError MaxParticipantsError state.maxParticipants)
+                                    |> Field.applyValidation
+                                        (Field.mapError EquipmentError state.equipment)
+                    )
+    in
+    V.map4
+        Output
+        validateTitle
+        (Field.validate identity (Field.mapError AbstractError state.abstract))
+        validateFormat
+        (Form.List.validate SpeakerError state.speakers)

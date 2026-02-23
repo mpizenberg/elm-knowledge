@@ -12,6 +12,8 @@ A conference talk submission form demonstrating `dwayne/elm-form` with
 - **Error accumulation** via `Validation` (all errors shown at once)
 - **Dirty-based error display** (errors only appear after the user interacts with a field)
 - **Error-to-string mapping** with `Field.errorToString`
+- **Conditional/branching fields** depending on the selected format (`V.andThen`)
+- **Simulated remote validation** for title uniqueness (delayed `Task` + non-`Field` state in the form)
 
 ## How it works
 
@@ -75,6 +77,66 @@ Form.update (\a -> a.removeSpeaker id) model.talk
 Form.modify (\a -> a.speakerName id) (Field.setFromString s) model.talk
 ```
 
+### Conditional fields by format
+
+`V.andThen` enables branching: the format field is validated first, then different
+fields are validated depending on the result. Workshop requires extra fields
+(max participants, equipment) that Talk and Lightning don't:
+
+```elm
+validateFormat =
+    Field.validate identity (Field.mapError FormatError state.format)
+        |> V.andThen
+            (\format ->
+                case format of
+                    Talk ->
+                        Field.validate TalkOutput
+                            (Field.mapError DurationError state.duration)
+
+                    Lightning ->
+                        V.succeed LightningOutput
+
+                    Workshop ->
+                        Field.succeed (\mp eq -> WorkshopOutput { ... })
+                            |> Field.applyValidation (Field.mapError MaxParticipantsError state.maxParticipants)
+                            |> Field.applyValidation (Field.mapError EquipmentError state.equipment)
+            )
+```
+
+The view conditionally renders format-specific fields based on `Field.toMaybe`
+on the format field.
+
+### Simulated remote validation
+
+Title uniqueness is checked via a simulated server request (`Process.sleep 2000`).
+A `TitleStatus` value (not a `Field`) is stored in the form state with its own
+accessor, so the validation function can read it:
+
+```elm
+type TitleStatus = NotChecked | Checking | Available | Taken
+
+-- In the form state, alongside Field values:
+{ title : Field String
+, titleStatus : TitleStatus
+, ...
+}
+
+-- In the validation function, after field-level validation passes:
+validateTitle =
+    Field.validate identity (Field.mapError TitleError state.title)
+        |> V.andThen
+            (\title ->
+                case state.titleStatus of
+                    Taken -> V.fail TitleTakenError
+                    Checking -> V.fail TitleCheckingError
+                    _ -> V.succeed title
+            )
+```
+
+On each title keystroke, the status is set to `Checking` and a delayed task is
+fired. When it completes, the title is compared against a hardcoded list.
+Stale results (title changed since the check started) are discarded.
+
 ### Dirty-based error display
 
 Errors are only shown after the user has modified a field:
@@ -101,6 +163,10 @@ showError = Field.isDirty field && Field.isInvalid field
 - `Form.List.append subForm forms` -- add a sub-form to the list
 - `Form.List.remove id forms` -- remove a sub-form by ID
 - `Form.List.validate ErrorTag forms` -- validate all sub-forms, tagging errors with their ID
+- `Form.set .accessor value form` -- set a non-Field value (e.g. `TitleStatus`) in the form state
+- `Field.validate f field` -- convert a field to a `Validation` (useful before `V.andThen`)
+- `V.andThen f validation` -- chain validations for conditional/branching logic
+- `V.map4 f v1 v2 v3 v4` -- combine 4 independent validations with error accumulation
 
 ## Running the example
 
@@ -118,7 +184,7 @@ forms/
 ├── README.md
 ├── src/
 │   ├── Main.elm           -- TEA app, view helpers, error display
-│   ├── TalkForm.elm       -- Parent form: title, abstract, format, duration, speakers
+│   ├── TalkForm.elm       -- Parent form: title (with remote check), format branching, speakers
 │   └── SpeakerForm.elm    -- Sub-form: name, email, bio
 └── static/
     └── index.html
