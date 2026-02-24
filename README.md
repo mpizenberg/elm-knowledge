@@ -50,7 +50,7 @@ See [KNOWLEDGE_PACKAGES.md](KNOWLEDGE_PACKAGES.md) for details.
 - elm-concurrent-task — composable, concurrent tasks that can call JS, replacing port boilerplate
 - elm-indexeddb — IndexedDB support via elm-concurrent-task with phantom-typed key discipline
 - elm-pwa — port-based bridge for PWA APIs (service workers, install prompts, push notifications)
-- elm-app-url — URL parsing for port-based SPA navigation with `Browser.element`
+- elm-url-navigation-port — port-based SPA navigation for `Browser.element`
 - elm-websocket-manager — type-safe WebSocket management with auto-reconnection and binary support
 - travelm-agency — compile-time i18n with strongly-typed translation functions
 - elm-natural / elm-integer — arbitrary-precision natural and signed integers

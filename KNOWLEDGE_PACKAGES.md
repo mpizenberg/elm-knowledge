@@ -129,22 +129,22 @@ including automatic update checks on tab visibility changes.
 
 See the [elm-pwa demo](https://github.com/mpizenberg/elm-pwa/tree/main/examples/demo) for a working example.
 
-## Navigation and URL handling with ports and elm-app-url
+## Navigation and URL handling with elm-url-navigation-port
 
-Use `Browser.element` with two ports instead of `Browser.application`:
-`navigationOut` (Elm -> JS) sends tagged JSON to request navigation actions,
-and `onNavigation` (JS -> Elm) echoes back `{href, state}` after navigation occurs.
-JS handles `history.pushState` / `replaceState` and `popstate` events.
+[elm-url-navigation-port](https://github.com/mpizenberg/elm-url-navigation-port) provides port-based SPA
+navigation for `Browser.element`. Use it instead of `Browser.application` for better compatibility
+with external libraries and browser extensions. Navigation targets use `AppUrl` from
+[lydell/elm-app-url](https://github.com/lydell/elm-app-url) — relative URLs, always same-origin.
 
-Three navigation patterns:
+Setup: install the Elm package and JS companion, declare two ports (`navCmd : Nav.CommandPort msg`,
+`onNavEvent : Nav.EventPort msg`), pass `location.href` as a flag for initial routing, and subscribe
+with `Nav.onEvent onNavEvent GotNavigationEvent`. The `Nav.Event` record contains `appUrl : AppUrl`
+and `state : Decode.Value`.
 
-1. **`pushUrl`** — Standard SPA page navigation. JS calls `pushState`, then notifies Elm of the new URL. Back button works via `popstate`.
-2. **`pushState` with state object** — Multi-step flows (e.g. wizard) where the URL stays the same but a state object (e.g. `{wizardStep: 2}`) tracks progress. Back button restores previous state atomically with the URL, avoiding flicker.
-3. **`replaceUrl`** — Cosmetic URL updates (e.g. `/about#3`) without creating a history entry and without notifying Elm. The model remains the source of truth.
-
-The [elm-app-url package](https://github.com/lydell/elm-app-url) is used to parse URLs and extract query parameters.
-
-See [examples/navigation](examples/navigation/) for a working demo.
+Five navigation commands: `pushUrl` (standard page navigation), `pushUrlWithState` (page navigation
+with a state object, e.g. scroll position), `pushState` (state-only, URL unchanged — for wizards/tabs),
+`back`/`forward` (history traversal by N steps), and `replaceUrl` (cosmetic URL update, no history entry,
+Elm not notified). Use `preventDefaultOn "click"` on `<a>` tags to intercept link clicks.
 
 ## WebSockets with elm-websocket-manager
 
