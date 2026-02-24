@@ -6,6 +6,3 @@
 	path = examples/elm-ui/elm-animator
 	url = https://github.com/mdgriffith/elm-animator.git
 	branch = v2
-[submodule "examples/indexeddb/elm-indexeddb"]
-	path = examples/indexeddb/elm-indexeddb
-	url = https://github.com/mpizenberg/elm-indexeddb.git

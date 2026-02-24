@@ -99,18 +99,22 @@ See [examples/concurrent-task](examples/concurrent-task/) for a working demo.
 
 [elm-indexeddb](https://github.com/mpizenberg/elm-indexeddb) provides IndexedDB support for Elm
 via [elm-concurrent-task](#task-ports-with-elm-concurrent-task).
-It uses phantom types to enforce key discipline at compile time —
-you cannot accidentally call `put` on a `GeneratedKey` store or `insert` on an `InlineKey` store.
-Setting it up requires installing both the Elm source and the JS companion (`createTasks()`).
+Phantom types enforce key discipline at compile time across three store types: `InlineKey`,
+`ExplicitKey`, and `GeneratedKey` — each with type-safe write operations and batch variants.
+Install the Elm package and JS companion (`createTasks()`).
 
-Three store types: `InlineKey` (key extracted from value at a key path),
-`ExplicitKey` (key provided on every write), and `GeneratedKey` (auto-incremented by IndexedDB).
-Define a schema with a version number (bump to trigger migrations), then `open` it.
+Define a schema with a version number and stores, then `open` it. Bumping the version automatically
+creates/deletes stores and syncs secondary indexes to match the schema.
 
-All operations return `ConcurrentTask Error` values, so they compose with `andThen`,
-run concurrently with `map2`/`batch`, and handle errors uniformly.
+Keys support `StringKey`, `IntKey`, `FloatKey`, `PosixKey` (native `Date` ordering), and
+`CompoundKey`. Key ranges (`only`, `from`, `above`, `upTo`, `below`, `between`) filter queries
+at the IndexedDB level. Secondary indexes (`defineIndex`, `uniqueIndex`, `multiEntryIndex`) enable
+queries on non-primary-key fields via `getByIndex`, `getKeysByIndex`, `countByIndex`.
 
-See [examples/indexeddb](examples/indexeddb/) for a working demo.
+All operations return `ConcurrentTask Error` values, composable with `andThen` and `batch`.
+
+See the [examples/todo-app](https://github.com/mpizenberg/elm-indexeddb/tree/main/examples/todo-app)
+for a working demo.
 
 ## Progressive Web Apps with elm-pwa
 
