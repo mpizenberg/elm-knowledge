@@ -76,6 +76,7 @@ Quick test without setup: `npx elm-review --template jfmengels/elm-review-unused
 
 [elm-watch](https://github.com/lydell/elm-watch) watches Elm source files, recompiles on change,
 and hot-reloads the browser while preserving application state.
+An http dev server is also provided in the `elm-watch@beta` version.
 It intentionally only handles Elm compilation — pair it with your own CSS tools, JS bundler
 (esbuild, Vite, etc.), and a process orchestrator like [run-pty](https://github.com/lydell/run-pty).
 
